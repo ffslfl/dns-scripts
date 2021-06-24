@@ -1,49 +1,93 @@
 
 # ffslfl-scripts
-Dieses Git enthält eine Sammlung an Scripten zur Aktualisierung des Zone-git für ffslfl.community.
-Außerdem gibt es Skripte, die aus der Forward-Zone eine passende Reverse-Zone für unsere internen RFC 1918 und RFC 4193 Adressen erzeugen.
+Dieses Git enthält eine Sammlung an Scripten zur Aktualisierung der Zonen für ffslfl.community.Dabei werden aus der Forward-Zone und optional eigener Subdomain (durch community-Zonefile gesteuert) auch passende Reverse-Zonen für unsere internen RFC 1918 und RFC 4193 Adressen erzeugen.
+
+Weiterhin werden bei eigener Subdomain die momentan vergebenen Adressen von dnsmasq und odhcpd (alles unter /tmp/hosts/) inkludiert.
+Das ermöglicht eine Namensauflösung für Freifunk-Teilnehmer ohne manuelle Konfiguration.
+Damit kann jeder Freifunk-Teilnehmer ein gültiges TLS-Zertifikat bekommen, sofern DHCPv6 am Gateway aktiviert ist.
+
+DNSSEC wird für jede Zone unterstützt, allerdings nur für die Hauptzone mit mehreren Servern. Für Subdomainserver darf mit DNSSEC nur jeweils ein Server authorativ sein.
 
 ## Installation
-#### Zone-git klonen
-Zuerst muss das [dns-git](https://github.com/ffslfl/dns) geclont werden. Dieses enthält die Zonendatei für ffslfl.community. Wohin dieses git geklont wird, ist egal. Der DNS Server muss Lesezugriff darauf haben.
+
+#### Systemanforderungen
+
+curl
+
+named-checkzone (z.B. bei bind oder bind-tools enthalten)
+
 ```
-git clone https://github.com/ffslfl/dns.git /srv/ffslfl-dns
+echo "dump" | nc ::1 33123
 ```
+muss die babel routen ausgeben, ansonsten muss update-public-acl.sh angepasst werden
 
 #### dns-scripts klonen
-Dann können die Skripte geklont werden. Dabei ist aktuell noch die Position wichtig, da das Skript derzeit absolulte Pfade verwendet.
+Die Scripte müssen geklont werden, oder anderweitig in einem Ordner auf dem Server abgelegt werden. Dabei ist aktuell noch die Position wichtig, da das Skript derzeit absolute Pfade verwendet (oder den Pfad in update-dns.sh anpassen)
 ```
-git clone https://github.com/ffslfl/dns-scripts.git /srv/ffslfl-scripts
+git clone https://github.com/ffslfl/dns-scripts.git /usr/lib/ffslfldns
 ```
 
+#### konfigurieren
+In der Datei update-dns.sh die Konfigurationsparameter setzen.
+
+
 #### Cron anlegen
-Schließlich muss noch ein Cron angelegt werden, der regelmäßig das Skript aufruft, welches das Zone-git aktualisiert und die Reverse-Skripte aufruft:
+Schließlich muss noch ein Cron angelegt werden, der regelmäßig das Skript aufruft:
 ```
-1-59/5 *   * * *   /srv/ffslfl-scripts/update-dns.sh /srv/ffslfl-dns
+1-59/5 *   * * *   /usr/lib/ffslfldns/update-dns.sh
 ```
 
 #### DNS-Server konfigurieren
-Dann muss nur noch der DNS Server, z.B. `bind`, für die entsprechenden Zonen eingerichtet werden:
+Dann muss nur noch der DNS Server, z.B. `bind`, eingerichtet werden.
+
+Für bind werden durch die Scripte die include-Dateien angelegt (ffslfl.community-[in|ex]ternal.conf|icvpn-acl.conf):
+
+Konfiguration:
+
 ```
 $ cat named.conf.local 
 [..]
 
-zone "24.10.in-addr.arpa" {
-    type master;
-    file "/var/lib/bind/db.24.10";
-    allow-query { any; };
+acl icvpnlocal {
+	10.0.0.0/8;
+	172.16.0.0/12;
+	fc00::/7;
 };
-zone "e.2.7.5.e.a.6.9.7.0.d.f.ip6.arpa" {
-    type master;
-    file "/var/lib/bind/db.fd07-96ae-572e";
-    allow-query { any; };
+include "/etc/bind/icvpn-acl.conf"; # auto-generated
+
+[..]
+
+options {
+	[..] # eigene Optionen
+
+	check-names master warn; # Wichtig, da sonst Hostnamen mit _ (z.B.: HUAWEI_P30_lite ) bind nicht laden lassen
+}
+
+[..]
+
+view "icvpn-internal-view" {    
+	match-clients { icvpnrange; localhost; };
+	allow-query-cache { any; }
+
+    [..] # eigene Optionen
+
+
+	include "/etc/bind/icvpn-internal-view.conf"; # auto-generated
+
+	include "/etc/bind/icvpn-zones.conf"; # Nicht vergessen ;)
+
+    [..]	
 };
 
-zone "ffslfl.community" {
-    type master;
-    file "/srv/ffslfl-dns/db.ffslfl.community";
-    allow-query { any; };
+view "external-view" {
+	match-clients { any; };
+    [..] # eigene Optionen
+	
+	include "/etc/bind/external-view.conf"; # auto-generated
+    
+    [..]	
 };
+
 
 [..]
 ```
