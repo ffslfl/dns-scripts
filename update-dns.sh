@@ -13,7 +13,7 @@ cd $1
 oldhash=$(git rev-parse HEAD)
 git pull -q --ff-only
 
-/srv/ffslfl-scripts/10-50-reverse.sh
+/srv/ffslfl-scripts/10-24-reverse.sh
 /srv/ffslfl-scripts/fd07-96ae-572e-reverse.sh
 
 if [ "$oldhash" != "$(git rev-parse HEAD)" ]; then
