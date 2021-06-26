@@ -7,13 +7,13 @@ set -e
 CommunityDomain="ffslfl.community"
 CommunityExternPrefix="extern"
 CommunitySubnets="10.24.32.0/19 fd07:96ae:572e::/48"
-RemoteLocation="https://github.com/ffslfl/dns/raw/branch/main/"
-DNSSECPolicy="herpf"
+RemoteLocation="https://raw.githubusercontent.com/ffslfl/dns/main/"
+DNSSECPolicy=""
 
 # Serverconfig
-export DNSSCRIPT_CONTACT_EMAIL=info.freifunk-herpf.de.
+export DNSSCRIPT_CONTACT_EMAIL=info.schleswig-flensburg.frefiunk.net.
 # DNSSCRIPT_SERVER_NAME must be the server given in community zone files NS entry (Full Hostname, w/o trailing dot)
-export DNSSCRIPT_SERVER_NAME=dns.herpf.fff.community
+export DNSSCRIPT_SERVER_NAME=dnsprim.ffslfl.community
 UpdateScriptsFolder="/usr/lib/ffslfldns/"
 ZoneFilesFolder="/etc/bind/ffslfl/"
 BindIncludeFileFolder="/etc/bind/"
@@ -21,7 +21,8 @@ DNSSECKeyFolder="/etc/bind/keys/"
 TempFolder="/tmp/dnsscripts/"
 # specify the bird/babel or other routing table[s]
 # if RoutingTables is empty, the ICVPN-ACL-List will be fetched remotely (for servers that are no gateway)
-RoutingTables="10"
+#RoutingTables="10"
+RoutingTables=""
 
 # -1 -> disable bind [restart|reload]
 # 0 -> Debian (and like) systemctl [reload|restart] bind9
@@ -254,7 +255,7 @@ for Hood in $Hoods; do
 	fi
 done
 
-./update-public-acl.sh "$BindIcvpnAclTmp" "$RemoteLocation" "$RoutingTables"
+#./update-public-acl.sh "$BindIcvpnAclTmp" "$RemoteLocation" "$RoutingTables"
 
 ReConfigBind=0
 UpdateBindConfig() {
