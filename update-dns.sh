@@ -21,8 +21,8 @@ DNSSECKeyFolder="/etc/bind/keys/"
 TempFolder="/tmp/dnsscripts/"
 # specify the bird/babel or other routing table[s]
 # if RoutingTables is empty, the ICVPN-ACL-List will be fetched remotely (for servers that are no gateway)
-#RoutingTables="10"
-RoutingTables=""
+RoutingTables="10"
+#RoutingTables=""
 
 # -1 -> disable bind [restart|reload]
 # 0 -> Debian (and like) systemctl [reload|restart] bind9
@@ -136,8 +136,7 @@ if [ -n "$ServeMasterZone" ] || [ -n "$ServeExtZone" ]; then
 	if [ -n "$ExternalView" ] || [ -n "$ServeExtZone" ]; then
 		SerialExtern="$(GetZoneFileSerial "$ExternFile")"
 		if [ $((LocalMasterSerial)) -gt $((SerialExtern)) ]; then
-			sed -e '/^[^;]*\s\(10.\|[fF][cdCD][0-9a-fA-F]\{2\}:\)\S*\s*\(;.*\)\?$/d; \
-			s/^[^;^@]*\s\+\([^;]*\)\s[Ii][Nn]\s\+[Ss][Oo][Aa]\s/@                         \1 IN SOA /g' "$FileForExternGeneration" \
+			sed -e '/^[^;]*\s\(10.\|[fF][cdCD][0-9a-fA-F]\{2\}:\)\S*\s*\(;.*\)\?$/d; s/^[^;^@]*\s\+\([^;]*\)\s[Ii][Nn]\s\+[Ss][Oo][Aa]\s/@                         \1 IN SOA /g' "$FileForExternGeneration" \
 			> "$ExternFile"
 			UpdateExternView=1
 			[ -z "$ExternalView" ] || ReloadZone "$CommunityExternDomain" "$ExternalView"
@@ -255,7 +254,7 @@ for Hood in $Hoods; do
 	fi
 done
 
-#./update-public-acl.sh "$BindIcvpnAclTmp" "$RemoteLocation" "$RoutingTables"
+./update-public-acl.sh "$BindIcvpnAclTmp" "$RemoteLocation" "$RoutingTables"
 
 ReConfigBind=0
 UpdateBindConfig() {
