@@ -17,7 +17,8 @@ export DNSSCRIPT_SERVER_NAME=dnsprim.ffslfl.community
 UpdateScriptsFolder="/usr/lib/ffslfldns/"
 ZoneFilesFolder="/etc/bind/ffslfl/"
 BindIncludeFileFolder="/etc/bind/"
-DNSSECKeyFolder="/etc/bind/keys/"
+#DNSSECKeyFolder="/etc/bind/keys/"
+DNSSECKeyFolder=""
 TempFolder="/tmp/dnsscripts/"
 # specify the bird/babel or other routing table[s]
 # if RoutingTables is empty, the ICVPN-ACL-List will be fetched remotely (for servers that are no gateway)
